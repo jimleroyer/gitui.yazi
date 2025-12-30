@@ -2,15 +2,18 @@ return {
     entry = function()
         local output = Command("git"):arg("status"):stderr(Command.PIPED):output()
         if output.stderr ~= "" then
-            ya.notify({
+            ui.notify({
                 title = "gitui",
                 content = "Not in a git directory",
                 level = "warn",
                 timeout = 5,
             })
         else
-            permit = ya.hide()
-            local output, err_code = Command("gitui"):stderr(Command.PIPED):output()
+            permit = ui.hide()
+            local output, err_code = Command("gitui"):stdin(Command.INHERIT):stdout(Command.INHERIT):stderr(Command.PIPED):spawn()
+            if output and not err_code then
+                output, err_code = output:wait_with_output()
+            end
             if err_code ~= nil then
                 ya.notify({
                     title = "Failed to run gitui command",
